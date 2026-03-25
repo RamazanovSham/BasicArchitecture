@@ -1,0 +1,63 @@
+package ru.otus.basicarchitecture.ui.interests
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.chip.Chip
+import dagger.hilt.android.AndroidEntryPoint
+import ru.otus.basicarchitecture.R
+import ru.otus.basicarchitecture.databinding.FragmentInterestsBinding
+
+@AndroidEntryPoint
+class InterestsFragment : Fragment() {
+
+    private var _binding: FragmentInterestsBinding? = null
+    private val binding get() = _binding!!
+
+    private val viewModel: InterestsViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentInterestsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setupChips()
+        setupNextButton()
+    }
+
+    private fun setupChips() {
+        viewModel.interests.forEach { interest ->
+            val chip = Chip(requireContext()).apply {
+                text = interest
+                isCheckable = true
+                isClickable = true
+            }
+            binding.chipGroup.addView(chip)
+        }
+    }
+
+    private fun setupNextButton() {
+        binding.btnNext.setOnClickListener {
+            val selectedInterests = binding.chipGroup.checkedChipIds.mapNotNull { id ->
+                binding.chipGroup.findViewById<Chip>(id)?.text?.toString()
+            }
+
+            viewModel.savedInterests(selectedInterests)
+            findNavController().navigate(R.id.action_interestsFragment_to_summaryFragment)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
